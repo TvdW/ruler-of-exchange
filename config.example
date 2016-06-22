@@ -1,0 +1,23 @@
+## Example configuration file
+#
+#user my-username;
+#host exchange.example.com;
+#
+#folder Inbox {
+#    folder Important { }
+#    folder Spam { }
+#}
+#
+#category RulerOfExchange;
+#
+#match recipient "me@example.com" {
+#    match body "ruler-of-exchange" {
+#        action category "RulerOfExchange";
+#    }
+#    last-action move Inbox/Important;
+#}
+#
+#match from "hr@example.com" {
+#    action setread;
+#    last-action move Inbox/Spam;
+#}
