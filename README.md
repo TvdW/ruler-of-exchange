@@ -96,4 +96,4 @@ Five actions are currently implemented :
 
 ## License
 
-This is free open-source software.
+This is free open-source software. For more details, see `LICENSE`
