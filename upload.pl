@@ -175,6 +175,10 @@ PARSE_CONFIG: {
         } elsif ($next eq 'match') {
             my $rules= $get_rules->();
             push @all_rules, @$rules;
+        } elsif($next eq 'action' || $next eq 'last-action') {
+            my $action= $get_action->();
+            push @all_rules, Rule->new2([], $next, $action, \%config);
+            $config_error->("Expected semicolon") unless $get_lexeme->() eq ';';
         } elsif ($next eq 'folder') {
             $config{folder}->add($get_folder->());
         } elsif ($next eq 'category') {
