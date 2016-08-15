@@ -29,8 +29,6 @@ PARSE_CONFIG: {
     close $fh;
     my $line= 1;
 
-    my %standalone_lexemes= map { $_, 1 } (';', '[', '{', '}', ']');
-
     my $config_error= sub { push @_, " at $ARGV[1] line $line\n"; goto &Carp::croak; };
 
     my $get_lexeme= sub {
@@ -51,7 +49,7 @@ PARSE_CONFIG: {
             |
                 (?<dq>"(?<inner>(?:[^\\"]++|(?:\\.)++)*+)")
             |
-                (?<bare>[A-Za-z0-9_/.-]+)
+                (?<bare>[A-Za-z0-9\\_/.-]+)
             )
         !!x) {
             if ($+{nl})         { $line++; next }
