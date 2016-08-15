@@ -27,41 +27,45 @@ PARSE_CONFIG: {
     open my $fh, '<', $ARGV[1];
     my $config_body= join '', <$fh>;
     close $fh;
+    my $line= 1;
 
     my %standalone_lexemes= map { $_, 1 } (';', '[', '{', '}', ']');
 
-    my $config_error= sub { croak @_; };
+    my $config_error= sub { push @_, " at $ARGV[1] line $line\n"; goto &Carp::croak; };
 
     my $get_lexeme= sub {
         my $optional= shift;
         my $lexeme= '';
         my $in_quote;
-        1 while ($config_body =~ s/\A\s+//s || $config_body =~ s/\A#.*//);
-        my $ch= 0;
-        while (1) {
-            $ch++;
-            last if !$config_body;
-            last if (!$in_quote && (substr($config_body, 0, 1) =~ /[\s#]/));
-            last if (!$in_quote && $lexeme && $standalone_lexemes{substr($config_body, 0, 1)});
-            my $c= substr($config_body, 0, 1, '');
-            if ($c eq '"') {
-                $in_quote= !$in_quote;
-                next;
-            } elsif ($c eq '\\') {
-                $c= substr($config_body, 0, 1, '');
-                if ($c eq 'n') { $c= "\n" }
-                elsif ($c eq 't') { $c= "\t"; }
-            }
-            $lexeme .= $c;
 
-            if (!$in_quote && length($lexeme)==1 && $standalone_lexemes{$lexeme}) {
-                last;
-            }
+        while ($config_body =~ s!
+            \A
+            (?:
+                (?<ws>[ \t]+)
+            |
+                (?<nl>\n)
+            |
+                (?<comment>\#.*)
+            |
+                (?<standalone>[;\[\]\{\}])
+            |
+                (?<dq>"(?<inner>(?:[^\\"]++|(?:\\.)++)*+)")
+            |
+                (?<bare>[A-Za-z0-9_/.-]+)
+            )
+        !!x) {
+            if ($+{nl})         { $line++; next }
+            if ($+{ws})         { next; }
+            if ($+{comment})    { next; }
+            if ($+{standalone}) { return $+{standalone} }
+            if ($+{dq})         { my $inner= $+{inner}; s/\\t/\t/g, s/\\n/\n/g for $inner; return $inner }
+            if ($+{bare})       { return $+{bare} };
         }
-        if (!$lexeme && !$optional) {
-            $config_error->("Unexpected end of stream");
+        if ($config_body) {
+            $config_error->("Unexpected junk");
+        } elsif (!$config_body and !$optional) {
+            $config_error->("Unexpected EOF");
         }
-        return $lexeme;
     };
 
     my $get_string= $get_lexeme;
@@ -520,7 +524,7 @@ sub new2 {
     for my $cond (@$condition) {
         if (my $smpl= $condmapsimple{$cond->{type}}[$cond->{negate}]) {
             if ($properties{$smpl}) {
-                die "Outlook cannot match on the same property twice; $smpl already specified";
+                die "Outlook cannot match on the same property twice; $smpl already specified\n",Data::Dumper::Dumper(\%properties);
             }
             $properties{$smpl}= (ref $cond->{0} ? $cond->{0} : [$cond->{0}]);
         } else {
