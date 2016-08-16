@@ -541,9 +541,11 @@ sub new2 {
         } elsif ($type eq 'move') {
             my @foldername= split /\//, $action->{0};
             my $f= $config->{folder};
-            $f= $f->get($_) for @foldername;
-            if (!$f) {
-                die "Undefined folder: $action->{0}";
+            for (@foldername) {
+                $f= $f->get($_);
+                if (!$f) {
+                    die "Undefined folder: $action->{0}";
+                }
             }
             $properties{MoveToFolder}= $f;
         } elsif ($type eq 'category') {
