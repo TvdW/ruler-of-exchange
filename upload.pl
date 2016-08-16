@@ -389,7 +389,7 @@ sub fetch_folders {
 
 sub create_folder {
     my ($folder, $parent)= @_;
-    say "Creating folder ".$folder->name.", parent of ".$parent->{Name};
+    say "Creating folder ".$folder->name." (child of ".$parent->{Name}. ")";
     return jr(
         POST => "/ecp/MailboxFolders.svc/NewObject?msExchEcpCanary=$token",
         { content => {
