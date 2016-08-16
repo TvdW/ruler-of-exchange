@@ -56,7 +56,7 @@ PARSE_CONFIG: {
             if ($+{ws})         { next; }
             if ($+{comment})    { next; }
             if ($+{standalone}) { return $+{standalone} }
-            if ($+{dq})         { my $inner= $+{inner}; s/\\t/\t/g, s/\\n/\n/g for $inner; return $inner }
+            if ($+{dq})         { my $inner= $+{inner}; s/\\t/\t/g, s/\\n/\n/g, s/\\(.)/$1/g for $inner; return $inner }
             if ($+{bare})       { return $+{bare} };
         }
         if ($config_body) {
