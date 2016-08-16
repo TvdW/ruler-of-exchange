@@ -56,7 +56,7 @@ PARSE_CONFIG: {
             if ($+{ws})         { next; }
             if ($+{comment})    { next; }
             if ($+{standalone}) { return $+{standalone} }
-            if ($+{dq})         { my $inner= $+{inner}; s/\\t/\t/g, s/\\n/\n/g for $inner; return $inner }
+            if ($+{dq})         { my $inner= $+{inner}; s/\\t/\t/g, s/\\n/\n/g, s/\\(.)/$1/g for $inner; return $inner }
             if ($+{bare})       { return $+{bare} };
         }
         if ($config_body) {
@@ -389,7 +389,7 @@ sub fetch_folders {
 
 sub create_folder {
     my ($folder, $parent)= @_;
-    say "Creating folder ".$folder->name.", parent of ".$parent->{Name};
+    say "Creating folder ".$folder->name." (child of ".$parent->{Name}. ")";
     return jr(
         POST => "/ecp/MailboxFolders.svc/NewObject?msExchEcpCanary=$token",
         { content => {
@@ -541,9 +541,11 @@ sub new2 {
         } elsif ($type eq 'move') {
             my @foldername= split /\//, $action->{0};
             my $f= $config->{folder};
-            $f= $f->get($_) for @foldername;
-            if (!$f) {
-                die "Undefined folder: $action->{0}";
+            for (@foldername) {
+                $f= $f->get($_);
+                if (!$f) {
+                    die "Undefined folder: $action->{0}";
+                }
             }
             $properties{MoveToFolder}= $f;
         } elsif ($type eq 'category') {
