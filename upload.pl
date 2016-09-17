@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use v5.14;
 use warnings;
+use version;
 use Authen::NTLM;
 use HTTP::Tiny;
 use HTTP::CookieJar;
@@ -267,7 +268,7 @@ sub request {
         }
         $new_options->{headers}{Authorization}= "NTLM ".$ntlm->challenge;
         $response= $tiny->request($type, "$url$page", $new_options);
-        if (!$tiny->connected) {
+        if ((version->parse(HTTP::Tiny->VERSION) >= version->parse(v0.057)) && (!$tiny->connected)) {
             die "It appears that HTTP::Tiny is unable to re-use connections, NTLM authentication cannot work";
         }
 
