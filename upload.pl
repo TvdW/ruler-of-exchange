@@ -239,6 +239,7 @@ my $ntlm= Authen::NTLM->new(
 my $url= "https://$config{host}";
 my $tiny= HTTP::Tiny->new(
     cookie_jar => HTTP::CookieJar->new,
+    verify_SSL => 1,
 );
 
 sub request {
@@ -255,6 +256,9 @@ sub request {
         $new_options->{headers}{'Content-Length'}= length $new_options->{content};
     }
     my $response= $tiny->request($type, "$url$page", $new_options);
+    if ($response->{status} && $response->{status} == 599) {
+        die "Failed: $response->{content}";
+    }
     if ($response->{status} && $response->{status} == 401) {
         my $wwwauth= $response->{headers}{'www-authenticate'};
         $wwwauth= [$wwwauth] unless ref $wwwauth;
